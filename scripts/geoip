@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/bin/geoipupdate -d /usr/share/GeoIP -f /etc/GeoIP.conf -v

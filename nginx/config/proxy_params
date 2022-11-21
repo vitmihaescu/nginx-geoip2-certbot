@@ -1,0 +1,7 @@
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-GeoIP-Country $geoip2_data_country_code;
+proxy_set_header X-GeoIP-UnixDate $geoip2_metadata_build_epoch;
+proxy_pass_header Server;
