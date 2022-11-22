@@ -45,43 +45,40 @@ VOLUME [ "/etc/letsencrypt/live"]
 VOLUME [ "/usr/share/GeoIP" ]
 EXPOSE 443
 
-
-# Remove default entrypoint script
-RUN rm -rf /docker-entrypoint.sh /docker-entrypoint.d
-
-# Install prerequisites
-RUN apk upgrade --available
-RUN apk add --no-cache tini openrc busybox-initscripts libmaxminddb
-
 # Copy ngx_http_geoip2_module
 COPY --from=build /opt/ngx_http_geoip2_module.so /usr/lib/nginx/modules
-RUN chmod -R 644 /usr/lib/nginx/modules/ngx_http_geoip2_module.so
+# Copy periodic tasks
+COPY scripts/ /etc/periodic/daily/
 
-# Install geoipupdate
-RUN cd /opt \
+RUN \
+    # Remove default entrypoint script
+    rm -rf /docker-entrypoint.sh /docker-entrypoint.d \
+    # Set files permissions
+    && chmod -R 644 /usr/lib/nginx/modules/ngx_http_geoip2_module.so \
+    && chmod a+x /etc/periodic/daily/* \
+    # Install prerequisites
+    && apk add --no-cache tini openrc busybox-initscripts libmaxminddb python3\
+    # Install geoipupdate
+    && cd /opt \
     && wget https://github.com/maxmind/geoipupdate/releases/download/v4.10.0/geoipupdate_4.10.0_linux_amd64.tar.gz \
     && tar zxvf geoipupdate_4.10.0_linux_amd64.tar.gz \
     && cp ./geoipupdate_4.10.0_linux_amd64/geoipupdate /usr/bin/geoipupdate \
-    && rm * -rf
-
-# Install Certbot
-RUN apk add --no-cache python3 \
+    && rm * -rf \
+    # Install Certbot
     && curl -L 'https://bootstrap.pypa.io/get-pip.py' | python3 \
     && pip3 install -U cffi certbot \
-    &&  pip3 uninstall pip -y \
-    && rm -rf /root/.cache
+    && pip3 uninstall pip -y \
+    && rm -rf /root/.cache \
+    # Remove default nginx config
+    && rm -rf /etc/nginx/* && ln -s /usr/lib/nginx/modules /etc/nginx/modules
 
 # Copy nginx configuration and default content
-RUN rm -rf /etc/nginx/* && ln -s /usr/lib/nginx/modules /etc/nginx/modules
 COPY nginx/config/ /etc/nginx/
 COPY nginx/content/ /usr/share/nginx/
 
-# Periodic tasks
-COPY scripts/ /etc/periodic/daily/
-RUN chmod a+x /etc/periodic/daily/*
 
 # Startup script
 COPY entrypoint.sh /
 ENTRYPOINT [ "/entrypoint.sh" ]
 
-CMD crond && nginx -g "daemon off;"
+CMD crond & nginx -g "daemon off;"
