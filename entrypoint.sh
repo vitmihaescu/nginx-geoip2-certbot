@@ -20,4 +20,23 @@ geoipupdate -d /usr/share/GeoIP -f /etc/GeoIP.conf -v
 certbot renew
 
 
+# Prepare nginx configuration
+if [ ! -f "/etc/nginx/nginx.conf" ]; then
+    echo "Nginx configuration not found. Copying from template (/root/nginx/)."
+    cp -r /root/nginx/config/* /etc/nginx/
+    ln -s /usr/lib/nginx/modules /etc/nginx/modules
+else
+    echo "Using existing /etc/nginx/nginx.conf."
+fi
+
+# Prepare nginx content
+if [ ! "$(ls -A /usr/share/nginx/html)" ]; then
+    echo "Nginx content not found. Copying from template (/root/nginx/content/)."
+    cp -R /root/nginx/content/html /usr/share/nginx/html
+else
+    echo "Using existing /usr/share/nginx/html."
+fi
+
+
+
 exec "$@"

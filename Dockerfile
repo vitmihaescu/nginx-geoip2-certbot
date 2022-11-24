@@ -70,11 +70,18 @@ RUN \
     && pip3 uninstall pip -y \
     && rm -rf /root/.cache \
     # Remove default nginx config
-    && rm -rf /etc/nginx/* && ln -s /usr/lib/nginx/modules /etc/nginx/modules
+    && rm -rf /etc/nginx/* \
+    # Remove nginx content
+    && rm -rf /usr/share/nginx/html
 
 # Copy nginx configuration and default content
-COPY nginx/config/ /etc/nginx/
-COPY nginx/content/ /usr/share/nginx/
+COPY nginx/ /root/nginx/
+
+
+#COPY ./ /opt/
+#COPY nginx/ /opt/nginx/
+
+#COPY nginx/config/ /etc/nginx/
 
 
 # Startup script
