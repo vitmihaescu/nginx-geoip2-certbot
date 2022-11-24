@@ -32,7 +32,7 @@ fi
 # Prepare nginx content
 if [ ! "$(ls -A /usr/share/nginx/html)" ]; then
     echo "Nginx content not found. Copying from template (/root/nginx/content/)."
-    cp -R /root/nginx/content/html /usr/share/nginx/html
+    cp -r /root/nginx/content/html /usr/share/nginx
 else
     echo "Using existing /usr/share/nginx/html."
 fi
